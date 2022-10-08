@@ -1,6 +1,7 @@
 import torch
 import torchvision
 from torch import nn
+from torchvision import transforms
 
 
 def create_model(num_classes: int = 32,
@@ -17,7 +18,7 @@ def create_model(num_classes: int = 32,
         transforms (torchvision.transforms): vit image transforms.
     """
     IMG_SIZE = 28
-    transforms = transforms.Compose([
+    model_transforms = transforms.Compose([
         transforms.Resize((IMG_SIZE, IMG_SIZE)),
         transforms.Grayscale(num_output_channels=1),
         transforms.ToTensor()])
@@ -64,4 +65,4 @@ def create_model(num_classes: int = 32,
                 # print(x.shape)
                 x = self.classifier(self.block_2(self.block_1(x)))
                 return x
-    return Model, transforms
+    return Model, model_transforms

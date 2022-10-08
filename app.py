@@ -58,7 +58,7 @@ def predict(img) -> Tuple[Dict, float]:
 ### 4. Gradio app ###
 
 # Create title, description and article strings
-title = "World Puzzle Solver"
+title = "World Puzzle Solver 🧩"
 description = "A World Puzzle Solver app that uses a PyTorch model to predict the letters in a target image."
 article = ""
 

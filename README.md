@@ -1,6 +1,6 @@
 ---
-title: WorldPuzzleSolver
-emoji: 📊
+title: World Puzzle Solver
+emoji: 🧩
 colorFrom: yellow
 colorTo: purple
 sdk: gradio
