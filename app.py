@@ -14,10 +14,11 @@ with open("class_names.txt", "r") as f: # reading them in from class_names.txt
 ### 2. Model and transforms preparation ###    
 
 # Create model
-model_created, model_transforms = create_model(
+model_base, model_transforms = create_model(
     num_classes=len(class_names),
 )
 
+model_created = model_base(input_shape=1, hidden_units=10, output_shape=len(class_names))
 
 model_created.load_state_dict(
     torch.load(
