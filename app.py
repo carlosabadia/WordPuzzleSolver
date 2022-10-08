@@ -3,7 +3,7 @@ import gradio as gr
 import os
 import torch
 
-from model import create_vit16_model
+from model import create_model
 from timeit import default_timer as timer
 from typing import Tuple, Dict
 
@@ -14,14 +14,14 @@ with open("class_names.txt", "r") as f: # reading them in from class_names.txt
 ### 2. Model and transforms preparation ###    
 
 # Create model
-vit16, vit16_transforms = create_vit16_model(
-    num_classes=101, # could also use len(class_names)
+model_created, model_transforms = create_model(
+    num_classes=len(class_names),
 )
 
 
-vit16.load_state_dict(
+model_created.load_state_dict(
     torch.load(
-        f="model_food101_20_percent.pth",
+        f="model_1.pth",
         map_location=torch.device("cpu"),  # load to CPU
     )
 )
@@ -38,13 +38,13 @@ def predict(img) -> Tuple[Dict, float]:
     start_time = timer()
     
     # Transform the target image and add a batch dimension
-    img = vit16_transforms(img).unsqueeze(0)
+    img = model_transforms(img).unsqueeze(0)
     
     # Put model into evaluation mode and turn on inference mode
-    vit16.eval()
+    model_created.eval()
     with torch.inference_mode():
         # Pass the transformed image through the model and turn the prediction logits into prediction probabilities
-        pred_probs = torch.softmax(vit16(img), dim=1)
+        pred_probs = torch.softmax(model_created(img), dim=1)
     
     # Create a prediction label and prediction probability dictionary for each prediction class (this is the required format for Gradio's output parameter)
     pred_labels_and_probs = {class_names[i]: float(pred_probs[0][i]) for i in range(len(class_names))}
@@ -58,8 +58,8 @@ def predict(img) -> Tuple[Dict, float]:
 ### 4. Gradio app ###
 
 # Create title, description and article strings
-title = "FoodVision ViT 🍔👁"
-description = "A ViT_B_16 feature extractor computer vision model to classify images of food into 101 different classes using 20% of the data."
+title = "World Puzzle Solver"
+description = "A World Puzzle Solver app that uses a PyTorch model to predict the letters in a target image."
 article = ""
 
 # Create examples list from "examples/" directory
