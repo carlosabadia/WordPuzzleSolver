@@ -1,5 +1,5 @@
 ---
-title: World Puzzle Solver
+title: Word Puzzle Solver
 emoji: 🧩
 colorFrom: yellow
 colorTo: purple
