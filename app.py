@@ -1,15 +1,42 @@
 ### 1. Imports and class names setup ### 
+from ast import Interactive
 import gradio as gr
 import os
 import torch
+import argparse
+import pathlib
+import cv2
+import numpy as np
+import os
+from typing import Tuple
+import pytesseract
+import re
+import shutil
+import solver
 
 from model import create_model
 from timeit import default_timer as timer
 from typing import Tuple, Dict
 
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--device', type=str, default='cpu')
+    parser.add_argument('--theme', type=str)
+    parser.add_argument('--share', action='store_true')
+    parser.add_argument('--port', type=int)
+    parser.add_argument('--disable-queue',
+                        dest='enable_queue',
+                        action='store_false')
+    return parser.parse_args()
+
+def set_example_image(example: list) -> dict:
+    return gr.Image.update(value=example[0])
+
+
 # Setup class names
 with open("class_names.txt", "r") as f: # reading them in from class_names.txt
-    class_names = [food_name.strip() for food_name in  f.readlines()]
+    class_names = [names.strip() for names in  f.readlines()]
     
 ### 2. Model and transforms preparation ###    
 
@@ -20,7 +47,7 @@ model_base, model_transforms = create_model(
 
 model_created = model_base(input_shape=1, hidden_units=10, output_shape=len(class_names))
 
-model_created.load_state_dict(
+model_1 = model_created.load_state_dict(
     torch.load(
         f="model_1.pth",
         map_location=torch.device("cpu"),  # load to CPU
@@ -28,57 +55,99 @@ model_created.load_state_dict(
 )
 
 
+def main():
+    args = parse_args()
+    args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print('*** Now using %s.'%(args.device))
 
-### 3. Predict function ###
+    with gr.Blocks(theme=args.theme, css='style.css') as demo:
+        gr.Markdown('''# World Puzzle Solver 🧩''')
 
-# Create predict function
-def predict(img) -> Tuple[Dict, float]:
-    """Transforms and performs a prediction on img and returns prediction and time taken.
-    """
-    # Start the timer
-    start_time = timer()
-    
-    # Transform the target image and add a batch dimension
-    img = model_transforms(img).unsqueeze(0)
-    
-    # Put model into evaluation mode and turn on inference mode
-    model_created.eval()
-    with torch.inference_mode():
-        # Pass the transformed image through the model and turn the prediction logits into prediction probabilities
-        pred_probs = torch.softmax(model_created(img), dim=1)
-    
-    # Create a prediction label and prediction probability dictionary for each prediction class (this is the required format for Gradio's output parameter)
-    pred_labels_and_probs = {class_names[i]: float(pred_probs[0][i]) for i in range(len(class_names))}
-    
-    # Calculate the prediction time
-    pred_time = round(timer() - start_time, 5)
-    
-    # Return the prediction dictionary and prediction time 
-    return pred_labels_and_probs, pred_time
+        with gr.Box():
+            gr.Markdown('''### Insert a Word Puzzle Image in both boxes and crop the board and words''')
+            with gr.Row():    
+                with gr.Box():
+                    with gr.Column():
+                        gr.Markdown('''Images 🖼️''')                
+                        with gr.Row():
+                            input_board= gr.Image(label='Board',
+                                                           type='filepath',
+														   interactive=True,)
+                        with gr.Row():
+                            crop_board_button = gr.Button('Crop Board ✂️')
+                        with gr.Row():
+                            input_words = gr.Image(label='Words',
+                                                          type='filepath',
+														  interactive=True,)  
+                        with gr.Row():
+                            crop_words_button = gr.Button('Crop Words ✂️')
+                        with gr.Column():
+					# Create examples list from "examples/" directory
+                            paths = [["examples/" + example] for example in os.listdir("examples")]
+                            example_images = gr.Dataset(components=([input_board]),
+                                            samples=[[path] for path in paths],
+                                            label='Image Examples (Drag and drop into both boxes) then crop using the tool button')
 
-### 4. Gradio app ###
+                with gr.Box():
+                    with gr.Column():
+                        gr.Markdown('''Cropped Images ✂️''')
+                        with gr.Row():
+                            cropped_board = gr.Image(label='Board Cropped',
+                                            type='filepath',
+                                            interactive=False)
+                            instyle = gr.Variable()
+                        with gr.Row():
+                            cropped_words = gr.Image(label='Words Cropped',
+                                            type='filepath',
+                                            interactive=False)
+                            instyle = gr.Variable()
+                        with gr.Row():
+                            find_words_button = gr.Button('Find Words 🔍')
+                        with gr.Row():
+                            words_found = gr.Textbox(label='Words detected (edit if wrong)', interactive=True, value='')
+                        with gr.Row():
+                            solve_button = gr.Button('Solve! 📝')
 
-# Create title, description and article strings
-title = "World Puzzle Solver 🧩"
-description = "A World Puzzle Solver app that uses a PyTorch model to predict the letters in a target image."
-article = ""
+                with gr.Box():
+                    with gr.Column():
+                        gr.Markdown('''Solution ✅''')
+                        with gr.Row():
+                            board_solved = gr.Image(label='Solved Word Puzzle',
+                                            type='filepath',
+                                            interactive=False)
+                        with gr.Column():
+					# Create examples list from "examples/" directory
+                            paths = [["examples/" + example] for example in os.listdir("examples")]
+                            example_images = gr.Dataset(components=([board_solved]),
+                                            samples=[[path] for path in paths],
+                                            label='World puzzle solved and words found')
 
-# Create examples list from "examples/" directory
-example_list = [["examples/" + example] for example in os.listdir("examples")]
+                crop_board_button.click(fn=None,
+                                inputs=[input_board],
+                                outputs=[cropped_board])
+                crop_words_button.click(fn=None,
+								inputs=[input_words],
+								outputs=[cropped_words])
+                find_words_button.click(solver.get_words,
+								inputs=cropped_words,
+								outputs=words_found)
+                solve_button.click(solver.solve_puzzle,
+								inputs=[cropped_board, words_found],
+								outputs=board_solved)
 
-# Create Gradio interface 
-demo = gr.Interface(
-    fn=predict,
-    inputs=gr.Image(type="pil"),
-    outputs=[
-        gr.Label(num_top_classes=5, label="Predictions"),
-        gr.Number(label="Prediction time (s)"),
-    ],
-    examples=example_list,
-    title=title,
-    description=description,
-    article=article,
-)
 
-# Launch the app!
-demo.launch()
+        example_images.click(fn=set_example_image,
+                                 inputs=example_images,
+                                 outputs=example_images.components)
+				
+
+        
+    demo.launch(
+        enable_queue=args.enable_queue,
+        server_port=args.port,
+        share=args.share,
+    )
+
+
+if __name__ == '__main__':
+    main()
