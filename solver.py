@@ -5,8 +5,6 @@ import numpy as np
 import os
 import src.solve as solve
 from typing import Tuple
-os.system('sudo apt-get install tesseract-ocr')
-os.system('pip install -q pytesseract')
 import pytesseract
 import re
 import shutil
