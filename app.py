@@ -2,22 +2,15 @@
 from ast import Interactive
 import gradio as gr
 import os
-import torch
 import argparse
-import pathlib
-import cv2
 import numpy as np
 import os
-from typing import Tuple
 import pytesseract
 import re
 import shutil
 import solver
 import glob
 from PIL import Image
-
-from model import create_model
-from timeit import default_timer as timer
 from typing import Tuple, Dict
 
 
