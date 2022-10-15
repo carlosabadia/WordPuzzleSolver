@@ -5,6 +5,8 @@ import os
 import argparse
 import numpy as np
 import os
+os.system('sudo apt-get install tesseract-ocr')
+os.system('pip install -q pytesseract')
 import pytesseract
 import re
 import shutil
