@@ -19,7 +19,7 @@ with open("class_names.txt", "r") as f:  # reading them in from class_names.txt
 
 model1 = tf.keras.models.load_model('model/model30.h5')
 model2 = tf.keras.models.load_model('model/model15.h5')
-#model3 = tf.keras.models.load_model('model/model2.h5')
+model3 = tf.keras.models.load_model('model/model2.h5')
 
 palabras_1 = []
 # Borrar el directorio de imagenes
@@ -177,12 +177,18 @@ def solve_puzzle(img, words):
                 img_array = img2.reshape(1, 28, 28, 1)
                 prediction1 = np.argmax(model1.predict(img_array))
                 prediction2 = np.argmax(model2.predict(img_array))
-                #prediction3 = np.argmax(model3.predict(img_array))
+                prediction3 = np.argmax(model3.predict(img_array))
                 pred = 0
-                if prediction1 == prediction2:
+                if prediction1 == prediction2 and prediction2 == prediction3:
                    pred = prediction1
+                elif  prediction1 == prediction2:
+                   pred = prediction1
+                elif  prediction2 == prediction3:
+                   pred = prediction2
+                elif  prediction1 == prediction3:
+                   pred = prediction3
                 else:
-                    pred = 32
+                   pred = 32
                 #print(characters[pred])
                 contCuadrados["anchura"] = x
                 contCuadrados["altura"] = y

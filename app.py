@@ -49,7 +49,7 @@ def main():
 
     with gr.Blocks(theme=args.theme, css='style.css') as demo:
         gr.Markdown('''# World Puzzle Solver 🧩''')
-        gr.Markdown('''## (Works in Spanish too!) 🇪🇸''')
+        gr.Markdown('''## (Works in Spanish too!)  🇪🇸''')
 
         with gr.Box():
             gr.Markdown(
@@ -68,7 +68,7 @@ def main():
                         with gr.Row():
                             input_words = gr.Image(label='Words',
                                                    type='filepath',
-                                                   interactive=True, height="300px", width="300px",
+                                                   interactive=True,
                                                    )
                         with gr.Row():
                             crop_words_button = gr.Button('Crop Words ✂️')
@@ -82,18 +82,18 @@ def main():
                                                         label='Image Examples (Drag and drop into both boxes) then crop using the tool button')
 
                 with gr.Box():
+                    # Change column height
+                    
                     with gr.Column():
                         gr.Markdown('''Cropped Images ✂️''')
                         with gr.Row():
                             cropped_board = gr.Image(label='Board Cropped',
                                                      type='filepath',
                                                      interactive=False, height="auto")
-                            instyle = gr.Variable()
                         with gr.Row():
                             cropped_words = gr.Image(label='Words Cropped',
                                                      type='filepath',
                                                      interactive=False)
-                            instyle = gr.Variable()
                         with gr.Row():
                             find_words_button = gr.Button('Find Words 🔍')
                         with gr.Row():
