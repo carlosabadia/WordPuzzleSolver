@@ -79,7 +79,7 @@ def main():
                             example_images = gr.Dataset(components=([input_board]),
                                                         samples=[[path]
                                                                  for path in paths],
-                                                        label='Image Examples (Drag and drop into both boxes) then crop using the tool button')
+                                                        label='Image Examples (Drag and drop into both boxes) then crop using the tool button on top right')
 
                 with gr.Box():
                     # Change column height
