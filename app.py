@@ -30,10 +30,6 @@ def set_example_image(example: list) -> dict:
     return gr.Image.update(value=example[0])
 
 
-def update_dataset(example: list) -> dict:
-    return gr.Gallery.update(value=example[0])
-
-
 # Setup class names
 with open("class_names.txt", "r") as f:  # reading them in from class_names.txt
     class_names = [names.strip() for names in f.readlines()]
@@ -49,7 +45,6 @@ def get_images():
 
 def main():
     args = parse_args()
-    args.device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print('*** Now using %s.' % (args.device))
 
     with gr.Blocks(theme=args.theme, css='style.css') as demo:
