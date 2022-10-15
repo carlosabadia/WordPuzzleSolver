@@ -67,13 +67,14 @@ def main():
                             input_board = gr.Image(label='Board',
                                                    type='filepath',
                                                    interactive=True,
-                                                   placeholder="examples/")
+                                                   placeholder="examples/board_test.png")
                         with gr.Row():
                             crop_board_button = gr.Button('Crop Board ✂️')
                         with gr.Row():
                             input_words = gr.Image(label='Words',
                                                    type='filepath',
-                                                   interactive=True, height="auto")
+                                                   interactive=True, height="auto",
+                                                   placeholder="examples/words_test.png")
                         with gr.Row():
                             crop_words_button = gr.Button('Crop Words ✂️')
                         with gr.Row():
