@@ -73,7 +73,8 @@ def main():
                         with gr.Row():
                             input_board = gr.Image(label='Board',
                                                    type='filepath',
-                                                   interactive=True,)
+                                                   interactive=True,
+                                                   placeholder="examples/")
                         with gr.Row():
                             crop_board_button = gr.Button('Crop Board ✂️')
                         with gr.Row():
