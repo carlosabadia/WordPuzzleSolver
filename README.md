@@ -1,13 +1,5 @@
----
-title: Word Puzzle Solver
-emoji: 🧩
-colorFrom: yellow
-colorTo: purple
-sdk: gradio
-sdk_version: 3.4.1
-app_file: app.py
-pinned: false
-license: mit
----
+# Word Puzzle Solver 🧩
 
-Check out the configuration reference at https://huggingface.co/docs/hub/spaces-config-reference
+After creating a custom dataset of images of letters using .ttf files an AI model was trained using Tensorflow to solve World Puzzles. Opencv and tesseract were also used for image preprocessing and contour finding.
+
+* Demo avaible at [Hugging Face](https://huggingface.co/spaces/carlosabadia/WorldPuzzleSolver)
