@@ -131,7 +131,7 @@ def solve_puzzle(img, words):
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     blur = cv2.GaussianBlur(gray, (5, 5), 0)
 	# save the blurred image
-    cv2.imwrite("output/blur.png", blur)
+    #cv2.imwrite("output/blur.png", blur)
 	# display blurred image
     threshten = cv2.threshold(
         blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]

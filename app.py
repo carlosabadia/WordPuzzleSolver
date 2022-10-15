@@ -68,7 +68,7 @@ def main():
                         with gr.Row():
                             input_words = gr.Image(label='Words',
                                                    type='filepath',
-                                                   interactive=True, height="auto",
+                                                   interactive=True, height="300px", width="300px",
                                                    placeholder="examples/words_test.png")
                         with gr.Row():
                             crop_words_button = gr.Button('Crop Words ✂️')
