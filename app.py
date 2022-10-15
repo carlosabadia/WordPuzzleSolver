@@ -51,7 +51,7 @@ def main():
 
     with gr.Blocks(theme=args.theme, css='style.css') as demo:
         gr.Markdown('''# World Puzzle Solver 🧩''')
-        gr.Markdown('''## (Works in Spanish too!)  🇪🇸''')
+        gr.Markdown('''## (Works with the Spanish alphabet too!)  🇪🇸''')
 
         with gr.Box():
             gr.Markdown(
@@ -81,7 +81,7 @@ def main():
                             example_images = gr.Dataset(components=([input_board]),
                                                         samples=[[path]
                                                                  for path in paths],
-                                                        label='Image Examples (Drag and drop into both boxes) then crop using the tool button on top right')
+                                                        label='Image Examples (Drag and drop into both boxes) if uploading a word puzzle then crop using the tool button on top right')
 
                 with gr.Box():
                     # Change column height
