@@ -18,7 +18,7 @@ def find_word (wordsearch, word):
 			# Word foundf
 			return xy_positionsvec,True
 	# Word not found
-	print(word, ' No encontrada')
+	#print(word, ' No encontrada')
 	return xy_positionsvec,False
 
 def check_start (wordsearch, word, start_pos):
@@ -40,9 +40,9 @@ def check_dir (wordsearch, word, start_pos, dir):
 	while (chars_match(found_chars, word)):
 		if (len(found_chars) == len(word)):
 			# If found all characters and all characters found are correct, then word has been found
-			print('')
-			print(word, ' Encontrada en:')
-			print('')
+			#print('')
+			#print(word, ' Encontrada en:')
+			#print('')
 			# Draw wordsearch on command line. Display found characters and '-' everywhere else
 			index =1 
 			for x in range(0, len(wordsearch)):
@@ -68,8 +68,8 @@ def check_dir (wordsearch, word, start_pos, dir):
 					else:
 						line = line + " -"
 		
-				print(line)
-			print('')
+				#print(line)
+			#print('')
 			return True, xy_positionsvec
 		# Have not found enough letters so look at the next one
 		current_pos = [current_pos[0] + dir[0], current_pos[1] + dir[1]]

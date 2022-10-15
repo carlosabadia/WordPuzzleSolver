@@ -3,32 +3,25 @@ from PIL import ImageFont, ImageDraw, Image
 import cv2
 import numpy as np
 import os
-import model
 import src.solve as solve
 from typing import Tuple
 import pytesseract
 import re
 import shutil
-import torch
-import torch.nn as nn
-import torchvision
-from torchvision import transforms
-from model import create_model
 import tensorflow as tf
 from tensorflow import keras
+import random
 
-
-device = "cuda" if torch.cuda.is_available() else "cpu"
 
 # Setup class names
-with open("class_names.txt", "r") as f: # reading them in from class_names.txt
-    class_names = [names.strip() for names in  f.readlines()]
+with open("class_names.txt", "r") as f:  # reading them in from class_names.txt
+    class_names = [names.strip() for names in f.readlines()]
 
+model1 = tf.keras.models.load_model('model/model30.h5')
+model2 = tf.keras.models.load_model('model/model15.h5')
+model3 = tf.keras.models.load_model('model/model2.h5')
 
-model1 = tf.keras.models.load_model('model/model2.h5')
-model2 = tf.keras.models.load_model('model/model30.h5')
-model3 = tf.keras.models.load_model('model/model15.h5')
-
+palabras_1 = []
 # Borrar el directorio de imagenes
 folder = 'output'
 for filename in os.listdir(folder):
@@ -52,17 +45,24 @@ for filename in os.listdir(folder):
         print('Failed to delete %s. Reason: %s' % (file_path, e))
 
 
-def get_words(img) -> str:
-    print(type(img))
+def get_words(img):
+    #print(type(img))
 	# str to filepath
     img = Image.open(img)
 	# Display image
-    #img.show()
+    # img.show()
     text = pytesseract.image_to_string(img, lang="spa+eng", config="--psm 11")
     text = text.upper()
     text = re.split('\W+', text)
     text.pop()
+    #palabras_1 = text
+    #print(palabras_1)
+    # array to string text
+    text = ' '.join(text)
+    # add comma to text
+    text = text.replace(" ", ",")
     return text
+
 
 def getmat(listaCuadrados, filas, columnas):
     matrix = [[0 for i in range(columnas)] for j in range(filas)]
@@ -94,40 +94,50 @@ def get_colums_and_rows(listaCuadrados):
             columnas = columnas + 1
     return filas, columnas
 
+
 def read_board(img, words):
-    print(type(img))
+    #(type(img))
 	# str to filepath
     img = Image.open(img)
 	# Display image
     img.show()
-	#Print words
-    print("Palabras a buscar: ", words)
+	# Print words
+    #print("Palabras a buscar: ", palabras_1)
+
 
 def solve_puzzle(img, words):
-    #print(type(img))
+    # print(type(img))
 	# str to filepath
-    #img = Image.open(img)
+    #print(type(words))
+    #print(words)
+    # img = Image.open(img)
 	# Pil to opencv compatible
-    pil_image = Image.open(img).convert('RGB') 
-    open_cv_image = np.array(pil_image) 
-    # Convert RGB to BGR 
-    open_cv_image = open_cv_image[:, :, ::-1].copy() 
+    pil_image = Image.open(img).convert('RGB')
+    open_cv_image = np.array(pil_image)
+    # Convert RGB to BGR
+    open_cv_image = open_cv_image[:, :, ::-1].copy()
 	# Display image
-	#Print words
+	# Print words
     img = open_cv_image
-    print("Palabras a buscar: ", words)
+    # string to array
+    words = words.split(",")
+    # remove last ,
+    #print(words)
+
     imgc = img.copy()
     imgsol = img.copy()
-    imgc = cv2.cvtColor(imgc, cv2.COLOR_BGR2GRAY)
+    imgc = cv2.cvtColor(imgc, cv2.COLOR_RGB2GRAY)
     imgc = np.invert(imgc)
-    gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-    #blur = cv2.GaussianBlur(gray, (5, 5), 0)
+    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    blur = cv2.GaussianBlur(gray, (5, 5), 0)
 	# save the blurred image
-    #cv2.imwrite("output/blur.png", blur)
+    cv2.imwrite("output/blur.png", blur)
 	# display blurred image
-    threshten = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
+    threshten = cv2.threshold(
+        blur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
     thresh = cv2.adaptiveThreshold(threshten, 255, 1, 1, 11, 2)
-    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, hierarchy = cv2.findContours(
+        thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 	# Draw contours and save the image
 
     characters = np.array([
@@ -164,7 +174,6 @@ def solve_puzzle(img, words):
                 cv2.rectangle(img, (x0, y0), (x1, y1), (0, 255, 0), 2)
                 img2 = imgc[y0:y1, x0:x1]
                 img2 = cv2.resize(img2, (28, 28))
-                img2 = cv2.resize(img2,(28,28))
                 img_array = img2.reshape(1, 28, 28, 1)
                 prediction1 = np.argmax(model1.predict(img_array))
                 prediction2 = np.argmax(model2.predict(img_array))
@@ -175,11 +184,12 @@ def solve_puzzle(img, words):
                 elif  prediction1 == prediction2:
                    pred = prediction1
                 elif  prediction2 == prediction3:
-                    pred = prediction2
+                   pred = prediction2
                 elif  prediction1 == prediction3:
-                    pred = prediction3
+                   pred = prediction3
                 else:
                    pred = 32
+                #print(characters[pred])
                 contCuadrados["anchura"] = x
                 contCuadrados["altura"] = y
                 contCuadrados["centrox"] = (x + x + w)/2
@@ -191,20 +201,30 @@ def solve_puzzle(img, words):
                 draw.text(((x0+x1)/2, y0-10),
                           characters[pred], font=fnt, fill=(255, 0, 0, 0))
                 img = np.array(img_pil)
-                cv2.imwrite("output/"+str(i)+".png", img2)
+    #cv2.imwrite("output/Tablero_Labels.png", img)
     filas, columnas = get_colums_and_rows(listaCuadrados)
-
+    # print listaCuadrados
+    # print(listaCuadrados)
     matrix, matrixT = getmat(listaCuadrados, filas, columnas)
     palabrasxy = []
 
-
+    # print()
+    # print("Palabras a buscar:")
+    # for i in words:
+    #    print(i)
+    # print()
+    # for i in range(filas):
+    #     for j in range(columnas):
+    #        print(matrix[i][j], end = " ")
+    #     print()
+    # print()
+    # print()
     image_new = imgsol.copy()
     overlay = imgsol.copy()
-    import random
     index = 0
     index2 = 0
     for i in words:
-
+        #(i)
         xy_positionsvec, find = solve.find_word(matrix, i)
         if find:
             palabrasxy.append(xy_positionsvec)
@@ -212,8 +232,8 @@ def solve_puzzle(img, words):
             # print(len(xy_positionsvec))
             xy = xy_positionsvec[0]
             xy2 = xy_positionsvec[len(xy_positionsvec)-1]
-            #print(xy["x"], " ",xy["y"])
-            #print(xy2["x"], " ",xy2["y"])
+            # print(xy["x"], " ",xy["y"])
+            # print(xy2["x"], " ",xy2["y"])
             coordreal = matrixT[xy["x"]][xy["y"]]
             coordreal2 = matrixT[xy2["x"]][xy2["y"]]
             centrox = coordreal["centrox"]
@@ -232,11 +252,15 @@ def solve_puzzle(img, words):
             cv2.line(overlay2, (centrox, centroy), (centrox2, centroy2), color,
                      thickness=int(abs(coordreal["altura"] - coordreal["centroy"])*2))
             image_word = cv2.addWeighted(overlay2, 0.4, image_new, 1 - 0.4, 0)
-            cv2.imwrite("palabrasSopa/" + words[index2] + ".png", image_word)
+            cv2.imwrite("wordsPuzzle/" + words[index2] + ".jpg", image_word)
+            # append the image into a numpy array
+            
+            #print(words[index2])
     
             index += 1
         index2 += 1
     alpha = 0.4  # Transparency factor
     image_new = cv2.addWeighted(overlay, alpha, image_new, 1 - alpha, 0)
-    final = cv2.imwrite("output/Tablero_solucion.png", image_new)
-    return final
+    cv2.imwrite("output/Tablero_solucion.png", image_new)
+    # return the images in wordsPuzzle folder as numpy arrays
+    return image_new
